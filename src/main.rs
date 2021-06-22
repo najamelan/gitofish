@@ -1,0 +1,10 @@
+use
+{
+	libgitofish::*,
+};
+
+
+fn main()
+{
+
+}

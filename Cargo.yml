@@ -1,0 +1,93 @@
+package:
+
+  # When releasing to crates.io:
+  #
+  # - last check for all TODO, FIXME, expect, unwrap, todo!, unreachable!.
+  # - recheck log statements (informative, none left that were just for development, ...)
+  # - `cargo +nightly doc --no-deps --all-features --open` and re-read and final polish of documentation.
+  #
+  # - Update CHANGELOG.md.
+  # - Update version numbers in Cargo.yml, Cargo.toml, install section of readme.
+  #
+  # - `touch **.rs && cargo clippy --tests --examples --benches --all-features`
+  # - `cargo update`
+  # - `cargo outdated --root-deps-only`
+  # - `cargo audit`
+  # - `cargo udeps --all-targets --all-features`
+  # - `cargo crev crate verify --show-all --recursive` and review.
+  # - 'cargo test --all-targets --all-features'
+  #
+  # - push dev and verify CI result
+  # - `cargo test` on dependent crates
+  #
+  # - cargo publish
+  # - `git checkout master && git merge dev --no-ff`
+  # - `git tag x.x.x` with version number.
+  # - `git push && git push --tags`
+  #
+  version       : 0.1.0
+  name          : gitofish
+  authors       : [ Naja Melan <najamelan@autistici.org> ]
+  description   : UPDATE ME
+  documentation : https://docs.rs/gitofish
+  repository    : https://github.com/najamelan/gitofish
+  readme        : README.md
+  keywords      : []
+  categories    : []
+  license       : Unlicense
+  edition       : '2018'
+  resolver      : '2'
+  exclude       : [ benches ]
+
+  metadata:
+    docs:
+      rs:
+        all-features: true
+        targets     : []
+
+
+badges:
+
+  maintenance : { status     : actively-developed }
+  travis-ci   : { repository : najamelan/gitofish }
+
+
+bin:
+  - path: src/main.rs
+    name: gitofish
+
+lib:
+
+  name: libgitofish
+  path: src/lib.rs
+
+
+
+features:
+
+
+
+dependencies:
+
+  # Public dependencies (bump major if changing any version number here)
+  # Means we use types from these crates in our public API.
+  #
+
+
+  # Private dependencies
+  #
+  git2        : ^0.13
+  git-version : ^0.3
+  gitoxide    : ^0.7
+  structopt   : ^0.3
+  envy        : ^0.4
+
+
+dev-dependencies:
+
+  pretty_assertions   : ^0.6
+
+
+build-dependencies:
+
+  rustc_version: ^0.4

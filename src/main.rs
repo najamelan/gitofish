@@ -38,8 +38,8 @@
 // - In post-receive. We first verify working dir is clean, otherwise commit-all again and push-force.
 //   If files have changed since PRE_GIT, the pull --fast-forward will fail.
 //
-#![ forbid ( unsafe_code                                ) ]
-#![ allow  ( clippy::suspicious_else_formatting         ) ]
+#![ forbid ( unsafe_code                        ) ]
+#![ allow  ( clippy::suspicious_else_formatting ) ]
 
 #![ warn
 (

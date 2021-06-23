@@ -71,18 +71,15 @@ pub struct Env
 ///
 /// This is parsed from /etc/gitofish.yml which must be present and valid.
 ///
-pub fn env() -> RwLockReadGuard< 'static, Env >
+pub fn env() -> &'static Env
 {
-	static INSTANCE: Lazy<RwLock< Env >> = Lazy::new( ||
+	static INSTANCE: Lazy< Env > = Lazy::new( ||
 	{
-		let env = envy::from_env::<Env>()
+		envy::from_env::<Env>()
 
 			.expect( "parsing environment should never fail." )
-		;
-
-		RwLock::new( env )
 	});
 
 
-	INSTANCE.read().expect( "Env lock poisoned" )
+	&INSTANCE
 }

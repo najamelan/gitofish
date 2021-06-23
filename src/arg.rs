@@ -12,13 +12,13 @@ pub struct CliArgs
 }
 
 
-pub fn arg() -> RwLockReadGuard< 'static, CliArgs >
+pub fn arg() -> &'static CliArgs
 {
-	static INSTANCE: Lazy<RwLock< CliArgs >> = Lazy::new( ||
+	static INSTANCE: Lazy< CliArgs > = Lazy::new( ||
 	{
-		RwLock::new( CliArgs::from_args() )
+		CliArgs::from_args()
 	});
 
 
-	INSTANCE.read().expect( "CliArgs lock poisoned" )
+	&INSTANCE
 }

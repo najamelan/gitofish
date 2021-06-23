@@ -48,7 +48,7 @@ mod import
 {
 	pub(crate) use
 	{
-		std :: { sync::{ RwLock, RwLockReadGuard } } ,
+		std :: {} ,
 		once_cell :: { sync::Lazy } ,
 		serde :: { Deserialize } ,
 		tracing :: { trace, debug, info, warn, error, span } ,

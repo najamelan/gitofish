@@ -5,9 +5,9 @@ use crate::import::*;
 ///
 /// This is parsed from /etc/gitofish.yml which must be present and valid.
 ///
-pub fn cfg() -> RwLockReadGuard< 'static, ConfigCrate >
+pub fn cfg() -> &'static ConfigCrate
 {
-	static INSTANCE: Lazy<RwLock< ConfigCrate >> = Lazy::new( ||
+	static INSTANCE: Lazy< ConfigCrate > = Lazy::new( ||
 	{
 		// Load our configuration file:
 		//
@@ -18,9 +18,9 @@ pub fn cfg() -> RwLockReadGuard< 'static, ConfigCrate >
 			.expect( "/etc/gitofish.yml must exist and must be a valid configuration file" )
 		;
 
-		RwLock::new( settings )
+		settings
 	});
 
 
-	INSTANCE.read().expect( "config lock poisoned" )
+	&INSTANCE
 }

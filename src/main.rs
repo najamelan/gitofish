@@ -65,26 +65,9 @@
 use
 {
 	libgitofish::*,
-	config :: Config ,
-	structopt::{ StructOpt } ,
 	tracing :: { info } ,
-	git_version :: git_version,
 };
 
-
-const GIT_VERSION: &str = git_version!();
-
-
-#[ derive( StructOpt, Debug ) ]
-//
-struct CliArgs
-{
-	#[ structopt( short, long ) ]
-	//
-	version: bool,
-
-	positional: Vec<String>,
-}
 
 
 
@@ -100,31 +83,12 @@ fn main()
 	   .init()
 	;
 
-
-	// Load our configuration file:
-	//
-	let mut settings = Config::default();
-
-	settings.merge( config::File::with_name( "/etc/gitofish.yml" ) )
-
-		.expect( "/etc/gitofish.yml must exist and must be a valid configuration file" )
-	;
+	println!( "settings: {:#?}\n", cfg() );
+	println!( "env: {:#?}\n"     , env() );
+	println!( "args: {:#?}\n"    , arg() );
 
 
-	let env = envy::from_env::<Env>()
-
-		.expect( "parsing environment should never fail." )
-	;
-
-
-	let args = CliArgs::from_args();
-
-	println!( "settings: {:#?}\n", settings );
-	println!( "env: {:#?}\n", env );
-	println!( "args: {:#?}\n", args );
-
-
-	if args.version
+	if arg().version
 	{
 		println!( "Gitofish, version: {}", GIT_VERSION );
 
@@ -132,16 +96,13 @@ fn main()
 	}
 
 
-	if let Some( "PRE_GIT" ) = args.positional.first().map( |s| s.as_str() )
+	if let Some( "PRE_GIT" ) = arg().positional.first().map( |s| s.as_str() )
 	{
-		info!( "In PRE_GIT" );
+		task::pre_git();
 	}
 
 	else
 	{
-		info!( "In post-receive" );
+		task::post_receive();
 	}
-
-
-
 }

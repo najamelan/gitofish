@@ -25,20 +25,21 @@
 
 #![ allow( unused_imports, dead_code, missing_docs ) ]
 
-mod tasks;
-// mod config;
-mod env;
-mod git;
-
+pub mod arg;
+pub mod cfg;
+pub mod env;
+pub mod git;
+pub mod task;
 
 pub use
 {
-	tasks  :: * ,
-	// config :: * ,
-	env    :: * ,
-	git    :: * ,
+	arg::arg,
+	cfg::cfg,
+	env::env,
 };
 
+use git_version :: git_version;
+pub const GIT_VERSION: &str = git_version!();
 
 
 // External dependencies
@@ -47,9 +48,12 @@ mod import
 {
 	pub(crate) use
 	{
-		std :: {  } ,
+		std :: { sync::{ RwLock, RwLockReadGuard } } ,
+		once_cell :: { sync::Lazy } ,
 		serde :: { Deserialize } ,
 		tracing :: { trace, debug, info, warn, error, span } ,
+		config_crate :: Config as ConfigCrate ,
+		structopt::{ StructOpt } ,
 	};
 
 

@@ -33,35 +33,56 @@
 
 use crate::import::*;
 
-#[derive(Deserialize, Debug)]
+#[ derive( Deserialize, Debug ) ]
 //
 pub struct Env
 {
-	git_dir               : Option<String>,
-	git_push_option_count : Option<String>,
-	gl_admin_base         : Option<String>,
-	gl_bindir             : Option<String>,
-	gl_libdir             : Option<String>,
-	gl_logfile            : Option<String>,
-	gl_option_gtf_gitdir  : Option<String>,
-	gl_option_gtf_tree    : Option<String>,
-	gl_option_gtf_user    : Option<String>,
-	gl_repo               : Option<String>,
-	gl_repo_base          : Option<String>,
-	gl_tid                : Option<String>,
-	gl_user               : Option<String>,
-	home                  : Option<String>,
-	lang                  : Option<String>,
-	logname               : Option<String>,
-	mail                  : Option<String>,
-	path                  : Option<String>,
-	pwd                   : Option<String>,
-	shell                 : Option<String>,
-	shlvl                 : Option<String>,
-	ssh_client            : Option<String>,
-	ssh_connection        : Option<String>,
-	ssh_original_command  : Option<String>,
-	user                  : Option<String>,
-	xdg_runtime_dir       : Option<String>,
-	xdg_session_id        : Option<String>,
+	pub git_dir               : Option< String >,
+	pub git_push_option_count : Option< String >,
+	pub gl_admin_base         : Option< String >,
+	pub gl_bindir             : Option< String >,
+	pub gl_libdir             : Option< String >,
+	pub gl_logfile            : Option< String >,
+	pub gl_option_gtf_gitdir  : Option< String >,
+	pub gl_option_gtf_tree    : Option< String >,
+	pub gl_option_gtf_user    : Option< String >,
+	pub gl_repo               : Option< String >,
+	pub gl_repo_base          : Option< String >,
+	pub gl_tid                : Option< String >,
+	pub gl_user               : Option< String >,
+	pub home                  : Option< String >,
+	pub lang                  : Option< String >,
+	pub logname               : Option< String >,
+	pub mail                  : Option< String >,
+	pub path                  : Option< String >,
+	pub pwd                   : Option< String >,
+	pub shell                 : Option< String >,
+	pub shlvl                 : Option< String >,
+	pub ssh_client            : Option< String >,
+	pub ssh_connection        : Option< String >,
+	pub ssh_original_command  : Option< String >,
+	pub user                  : Option< String >,
+	pub xdg_runtime_dir       : Option< String >,
+	pub xdg_session_id        : Option< String >,
+}
+
+
+/// Get the configuration.
+///
+/// This is parsed from /etc/gitofish.yml which must be present and valid.
+///
+pub fn env() -> RwLockReadGuard< 'static, Env >
+{
+	static INSTANCE: Lazy<RwLock< Env >> = Lazy::new( ||
+	{
+		let env = envy::from_env::<Env>()
+
+			.expect( "parsing environment should never fail." )
+		;
+
+		RwLock::new( env )
+	});
+
+
+	INSTANCE.read().expect( "Env lock poisoned" )
 }

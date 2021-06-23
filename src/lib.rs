@@ -3,8 +3,8 @@
 #![ doc = "" ] // empty doc line to handle missing doc warning when the feature is missing.
 
 #![ doc    ( html_root_url = "https://docs.rs/gitofish" ) ]
-#![ forbid ( unsafe_code                                      ) ]
-#![ allow  ( clippy::suspicious_else_formatting               ) ]
+#![ forbid ( unsafe_code                                ) ]
+#![ allow  ( clippy::suspicious_else_formatting         ) ]
 
 #![ warn
 (
@@ -23,6 +23,22 @@
 	variant_size_differences      ,
 )]
 
+#![ allow( unused_imports, dead_code, missing_docs ) ]
+
+mod tasks;
+// mod config;
+mod env;
+mod git;
+
+
+pub use
+{
+	tasks  :: * ,
+	// config :: * ,
+	env    :: * ,
+	git    :: * ,
+};
+
 
 
 // External dependencies
@@ -32,6 +48,8 @@ mod import
 	pub(crate) use
 	{
 		std :: {  } ,
+		serde :: { Deserialize } ,
+		tracing :: { trace, debug, info, warn, error, span } ,
 	};
 
 

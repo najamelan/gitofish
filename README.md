@@ -1,7 +1,7 @@
 # gitofish
 
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-[![Build Status](https://github.com/najamelan/gitofish/workflows/ci/badge.svg?branch=master)](https://github.com/najamelan/gitofish/actions)
+[![Build Status](https://github.com/najamelan/gitofish/workflows/ci/badge.svg?branch=release)](https://github.com/najamelan/gitofish/actions)
 [![Docs](https://docs.rs/gitofish/badge.svg)](https://docs.rs/gitofish)
 [![crates.io](https://img.shields.io/crates/v/gitofish.svg)](https://crates.io/crates/gitofish)
 
@@ -44,7 +44,7 @@ In Cargo.toml:
 
 ### Upgrade
 
-Please check out the [changelog](https://github.com/najamelan/gitofish/blob/master/CHANGELOG.md) when upgrading.
+Please check out the [changelog](https://github.com/najamelan/gitofish/blob/release/CHANGELOG.md) when upgrading.
 
 
 ### Dependencies
@@ -76,7 +76,7 @@ API documentation can be found on [docs.rs](https://docs.rs/gitofish).
 
 ## Contributing
 
-Please check out the [contribution guidelines](https://github.com/najamelan/gitofish/blob/master/CONTRIBUTING.md).
+Please check out the [contribution guidelines](https://github.com/najamelan/gitofish/blob/release/CONTRIBUTING.md).
 
 
 ### Testing

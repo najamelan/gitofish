@@ -22,3 +22,21 @@ pub fn arg() -> &'static CliArgs
 
 	&INSTANCE
 }
+
+
+/// Are we running from PRE_GIT?
+//
+pub fn is_pre_git() -> bool
+{
+	let args = &arg().positional;
+
+	if args.is_empty()
+	{
+		false
+	}
+
+	else
+	{
+		args[0] == "PRE_GIT"
+	}
+}

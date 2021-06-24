@@ -37,33 +37,34 @@ use crate::import::*;
 //
 pub struct Env
 {
-	pub git_dir               : Option< String >,
-	pub git_push_option_count : Option< String >,
-	pub gl_admin_base         : Option< String >,
-	pub gl_bindir             : Option< String >,
-	pub gl_libdir             : Option< String >,
-	pub gl_logfile            : Option< String >,
-	pub gl_option_gtf_gitdir  : Option< String >,
-	pub gl_option_gtf_tree    : Option< String >,
-	pub gl_option_gtf_user    : Option< String >,
-	pub gl_repo               : Option< String >,
-	pub gl_repo_base          : Option< String >,
-	pub gl_tid                : Option< String >,
-	pub gl_user               : Option< String >,
-	pub home                  : Option< String >,
-	pub lang                  : Option< String >,
-	pub logname               : Option< String >,
-	pub mail                  : Option< String >,
-	pub path                  : Option< String >,
-	pub pwd                   : Option< String >,
-	pub shell                 : Option< String >,
-	pub shlvl                 : Option< String >,
-	pub ssh_client            : Option< String >,
-	pub ssh_connection        : Option< String >,
-	pub ssh_original_command  : Option< String >,
-	pub user                  : Option< String >,
-	pub xdg_runtime_dir       : Option< String >,
-	pub xdg_session_id        : Option< String >,
+	pub git_dir                     : Option< String >,
+	pub git_push_option_count       : Option< String >,
+	pub gl_admin_base               : Option< String >,
+	pub gl_bindir                   : Option< String >,
+	pub gl_libdir                   : Option< String >,
+	pub gl_logfile                  : Option< String >,
+	pub gl_option_gtf_gitdir        : Option< String >,
+	pub gl_option_gtf_tree          : Option< String >,
+	pub gl_option_gtf_user          : Option< String >,
+	pub gl_option_gtf_post_checkout : Option< String >,
+	pub gl_repo                     : Option< String >,
+	pub gl_repo_base                : Option< String >,
+	pub gl_tid                      : Option< String >,
+	pub gl_user                     : Option< String >,
+	pub home                        : Option< String >,
+	pub lang                        : Option< String >,
+	pub logname                     : Option< String >,
+	pub mail                        : Option< String >,
+	pub path                        : Option< String >,
+	pub pwd                         : Option< String >,
+	pub shell                       : Option< String >,
+	pub shlvl                       : Option< String >,
+	pub ssh_client                  : Option< String >,
+	pub ssh_connection              : Option< String >,
+	pub ssh_original_command        : Option< String >,
+	pub user                        : Option< String >,
+	pub xdg_runtime_dir             : Option< String >,
+	pub xdg_session_id              : Option< String >,
 }
 
 
@@ -82,4 +83,10 @@ pub fn env() -> &'static Env
 
 
 	&INSTANCE
+}
+
+
+pub fn post_checkout() -> Option< String >
+{
+	env().gl_option_gtf_post_checkout.clone()
 }

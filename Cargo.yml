@@ -81,6 +81,7 @@ dependencies:
   git2              : ^0.13
   git-version       : ^0.3
   gitoxide          : ^0.7
+  hostname          : ^0.3
   serde             : ^1
   structopt         : { version: ^0.3, default-features: false }
   tracing           : ^0.1

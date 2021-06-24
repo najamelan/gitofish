@@ -48,12 +48,13 @@ mod import
 {
 	pub(crate) use
 	{
-		std :: {} ,
-		once_cell :: { sync::Lazy } ,
-		serde :: { Deserialize } ,
-		tracing :: { trace, debug, info, warn, error, span } ,
-		config_crate :: Config as ConfigCrate ,
-		structopt::{ StructOpt } ,
+		config_crate :: { Config as ConfigCrate, ConfigError                } ,
+		git2         :: { Repository                                        } ,
+		once_cell    :: { sync::Lazy                                        } ,
+		serde        :: { Deserialize                                       } ,
+		std          :: { path::Path, sync::mpsc::channel, process::Command } ,
+		structopt    :: { StructOpt                                         } ,
+		tracing      :: { trace, debug, info, warn, error, span, error_span } ,
 	};
 
 

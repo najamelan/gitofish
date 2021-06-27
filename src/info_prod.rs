@@ -3,7 +3,6 @@ use crate::{ import::*, CliArgs, Env, Info };
 
 /// The version of Info to run in production. (A different one is used for testing).
 //
-#[ cfg( not(test) ) ]
 #[ derive(Debug) ]
 //
 pub struct InfoProd
@@ -14,8 +13,6 @@ pub struct InfoProd
 }
 
 
-#[ cfg( not(test) ) ]
-//
 impl InfoProd
 {
 	/// Create a new info from cli, env and /etc/gitofish.yml.
@@ -50,8 +47,7 @@ impl InfoProd
 }
 
 
-#[ cfg( not(test) ) ]
-//
+
 impl Info for InfoProd
 {
 	fn arg( &self ) -> &CliArgs
@@ -71,5 +67,14 @@ impl Info for InfoProd
 	fn env( &self ) -> &Env
 	{
 		&self.env
+	}
+}
+
+
+impl Default for InfoProd
+{
+	fn default() -> Self
+	{
+		Self::new()
 	}
 }

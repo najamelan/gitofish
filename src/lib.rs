@@ -29,15 +29,19 @@ pub mod cli_arg;
 pub mod env;
 pub mod git;
 pub mod info;
-pub mod info_prod;
 pub mod task;
+
+#[ cfg(not( test )) ] pub mod info_prod;
+#[ cfg(not( test )) ] use info_prod::*;
+
+#[ cfg( test ) ] pub mod info_test;
+#[ cfg( test ) ] use info_test::*;
 
 pub use
 {
-	cli_arg   :: *,
-	env       :: *,
-	info      :: *,
-	info_prod :: *,
+	cli_arg :: * ,
+	env     :: * ,
+	info    :: * ,
 };
 
 use git_version :: git_version;

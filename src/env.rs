@@ -33,7 +33,7 @@
 
 use crate::import::*;
 
-#[ derive( Deserialize, Debug ) ]
+#[ derive( Deserialize, Debug, Default ) ]
 //
 pub struct Env
 {

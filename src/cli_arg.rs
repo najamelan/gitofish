@@ -1,7 +1,7 @@
 use crate::import::*;
 
 
-#[ derive( StructOpt, Debug ) ]
+#[ derive( StructOpt, Debug, Default ) ]
 //
 pub struct CliArgs
 {

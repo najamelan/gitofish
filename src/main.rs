@@ -83,12 +83,14 @@ fn main()
 	   .init()
 	;
 
-	println!( "settings: {:#?}\n", cfg() );
-	println!( "env: {:#?}\n"     , env() );
-	println!( "args: {:#?}\n"    , arg() );
+	let info = InfoProd::new();
+
+	println!( "settings: {:#?}\n", info.cfg() );
+	println!( "env: {:#?}\n"     , info.env() );
+	println!( "args: {:#?}\n"    , info.arg() );
 
 
-	if arg().version
+	if info.arg().version
 	{
 		println!( "Gitofish, version: {}", GIT_VERSION );
 
@@ -96,9 +98,9 @@ fn main()
 	}
 
 
-	if let Some( "PRE_GIT" ) = arg().positional.first().map( |s| s.as_str() )
+	if let Some( "PRE_GIT" ) = info.arg().positional.first().map( |s| s.as_str() )
 	{
-		task::pre_git();
+		task::pre_git( &info );
 	}
 
 	else

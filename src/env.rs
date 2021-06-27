@@ -68,26 +68,3 @@ pub struct Env
 	pub xdg_session_id              : Option< String >,
 }
 
-
-/// Get the configuration.
-///
-/// This is parsed from /etc/gitofish.yml which must be present and valid.
-///
-pub fn env() -> &'static Env
-{
-	static INSTANCE: Lazy< Env > = Lazy::new( ||
-	{
-		envy::from_env::<Env>()
-
-			.expect( "parsing environment should never fail." )
-	});
-
-
-	&INSTANCE
-}
-
-
-pub fn post_checkout() -> Option< String >
-{
-	env().gl_option_gtf_post_checkout.clone()
-}

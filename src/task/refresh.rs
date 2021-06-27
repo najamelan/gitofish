@@ -41,7 +41,7 @@
 //!   - vc checkout deploy
 //!   - vc push --force gitolite deployed:deployed
 //!
-use crate::{ import::*, arg, cfg, env };
+use crate::{ import::*, Info, env };
 
 
 #[ derive( Copy, Clone, Debug, PartialEq, Eq, Hash ) ]
@@ -52,13 +52,33 @@ pub enum RefreshStatus
 	NewContent,
 }
 
+impl RefreshStatus
+{
+	/// This allows to update the status. NewContent always has bigger weight.
+	/// That is for status to be clean, both self and new_status must be clean.
+	//
+	fn merge( self, new: Self ) -> Self
+	{
+		if    self == RefreshStatus::NewContent
+		   || new  == RefreshStatus::NewContent
+		{
+			RefreshStatus::NewContent
+		}
+
+		else
+		{
+			RefreshStatus::Clean
+		}
+	}
+}
+
 /// See module docs.
 ///
 //  TODO: evaluate all the error handling. What should be handled here, what should go up the stack...
 //
-pub fn refresh( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
+pub fn refresh( repo: &mut Repository, info: &impl Info ) -> Result<RefreshStatus, git2::Error>
 {
-	let mut status = RefreshStatus::Clean;
+	let status = RefreshStatus::Clean;
 
 
 	// Be recursive.
@@ -67,16 +87,16 @@ pub fn refresh( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
 	{
 		let mut repo = sub.open()?;
 
-		status = refresh( &mut repo )?;
+		status.merge( refresh( &mut repo, info )? );
 	}
 
 
-	status = commit( repo )?;
+	status.merge( commit( repo, info )? );
 
 	// We push inconditionally, just in case. There might be commits from a prior run
 	// that have not been pushed. So this just makes sure the remote is up to date.
 	//
-	push( repo )?;
+	push( repo, info )?;
 
 
 	// In pre-git, when we committed new stuff we probably want to fail the operation here if it is a push
@@ -87,7 +107,7 @@ pub fn refresh( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
 }
 
 
-pub fn commit( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
+pub fn commit( repo: &mut Repository, info: &impl Info ) -> Result<RefreshStatus, git2::Error>
 {
 	let mut status = RefreshStatus::Clean;
 
@@ -95,7 +115,7 @@ pub fn commit( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
 	// or become attached if it isn’t yet. If the branch doesn’t exist yet, no error will be returned.
 	// The HEAD will then be attached to an unborn branch. <- TODO: whatever this means.
 	//
-	repo.set_head( &cfg::branch() )?;
+	repo.set_head( &info.branch() )?;
 
 	// git add --all
 	//
@@ -110,7 +130,7 @@ pub fn commit( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
 
 		// TODO: more robust way of getting user name.
 		//
-		let usr = env().user.as_ref().expect( "A user name to be in environment vars." );
+		let usr = info.env().user.as_ref().expect( "A user name to be in environment vars." );
 
 		// TODO: audit hostname crate.
 		// TODO: hostname returns os-str, check utf safety.
@@ -127,7 +147,7 @@ pub fn commit( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
 
 		// git commit --message="SECURITY: New/Modified files appeared on server"
 		//
-		repo.commit( Some(&cfg::branch()), &sig, &sig, &msg, &tree, &[&parent] )?;
+		repo.commit( Some(&info.branch()), &sig, &sig, &msg, &tree, &[&parent] )?;
 	}
 
 	Ok(status)
@@ -140,7 +160,7 @@ pub fn commit( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
 ///
 /// TODO: probably want to panic a bit less.
 //
-pub fn push( repo: &mut Repository ) -> Result<(), git2::Error>
+pub fn push( repo: &mut Repository, info: &impl Info ) -> Result<(), git2::Error>
 {
 	let mut remote = repo.find_remote( "gitolite" )?;
 
@@ -167,7 +187,7 @@ pub fn push( repo: &mut Repository ) -> Result<(), git2::Error>
 
 	// NOTE: the '+' here means force push...
 	//
-	let refspec = format!( "+{}:{}", &cfg::branch(), &cfg::branch() );
+	let refspec = format!( "+{}:{}", &info.branch(), &info.branch() );
 
 	remote.push( &[ refspec ], Some(&mut p_opts) )?;
 

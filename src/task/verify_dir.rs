@@ -1,9 +1,9 @@
-use crate::{ import::*, arg, cfg, env, task };
+use crate::{ import::*, Info, task };
 
 
 // TODO: actually implement functionality.
 //
-pub fn verify_dir( dir: &Path, git_dir: Option< &Path > ) -> Result<Repository, Box<dyn std::error::Error> >
+pub fn verify_dir( dir: &Path, git_dir: Option< &Path >, info: &impl Info ) -> Result<Repository, Box<dyn std::error::Error> >
 {
 	// We will clone again, so clear git_dir as well.
 	//
@@ -20,7 +20,9 @@ pub fn verify_dir( dir: &Path, git_dir: Option< &Path > ) -> Result<Repository, 
 
 	if !dir.exists()
 	{
-		return Ok( task::create( dir )? )
+		// return
+		//
+		Ok( task::create( dir, info )? )
 	}
 
 
@@ -28,9 +30,9 @@ pub fn verify_dir( dir: &Path, git_dir: Option< &Path > ) -> Result<Repository, 
 	//
 	else
 	{
-		let uri = format!( "{}@localhost", env().sudo_user.as_ref().expect( "sudo_user" ) );
+		let uri = format!( "{}@localhost", info.env().sudo_user.as_ref().expect( "sudo_user" ) );
 
-		let mut repo =
+		let repo =
 
 			// if it's a repository
 			//
@@ -43,7 +45,7 @@ pub fn verify_dir( dir: &Path, git_dir: Option< &Path > ) -> Result<Repository, 
 			//
 			else if dir.read_dir()?.next().is_none()
 			{
-				task::create( &dir )?
+				task::create( &dir, info )?
 			}
 
 			// it's not a repo, and it's not empty.

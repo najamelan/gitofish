@@ -1,4 +1,4 @@
-use crate::{ import::*, cfg, env, arg };
+use crate::{ import::*, Info };
 
 pub fn post_receive()
 {
@@ -9,7 +9,7 @@ pub fn post_receive()
 }
 
 
-pub fn pull_gitolite( repo: &mut Repository ) -> Result<(), git2::Error>
+pub fn pull_gitolite( repo: &mut Repository, info: &impl Info ) -> Result<(), git2::Error>
 {
 	// If this is post-receive, we also do:
 	//
@@ -27,24 +27,26 @@ pub fn pull_gitolite( repo: &mut Repository ) -> Result<(), git2::Error>
 	// - commit-all
 	// - push-all
 	//
-	let mut gitolite = repo.find_remote( "gitolite" )?;
-	gitolite.fetch(&[ &cfg::branch() ], None, None )?;
+	let branch = info.branch();
 
-	let ref_spec   = format!( "gitolite/{}", &cfg::branch() );
+	let mut gitolite = repo.find_remote( "gitolite" )?;
+	gitolite.fetch(&[ &branch ], None, None )?;
+
+	let ref_spec   = format!( "gitolite/{}", &branch );
 	let reference  = repo.find_reference( &ref_spec )?;
 	let annotated  = repo.reference_to_annotated_commit( &reference )?;
 	let (merge, _) = repo.merge_analysis( &[ &annotated ] )?;
 
 	if merge == git2::MergeAnalysis::ANALYSIS_FASTFORWARD
 	{
-		let mut r      = repo.find_reference( &cfg::branch() )?;
-		let reflog_msg = format!( "Fast forward merge of gitolite/{} into {}", &cfg::branch(), &cfg::branch() );
+		let mut r      = repo.find_reference( &branch )?;
+		let reflog_msg = format!( "Fast forward merge of gitolite/{} into {}", &branch, &branch );
 
 		r.set_target( annotated.id(), &reflog_msg )?;
 
 		// TODO: Don't know if this is necessary.
 		//
-		repo.set_head( &cfg::branch() )?;
+		repo.set_head( &branch )?;
 		repo.checkout_head( None )?;
 
 
@@ -58,7 +60,7 @@ pub fn pull_gitolite( repo: &mut Repository ) -> Result<(), git2::Error>
 		// TODO: verify etckeeper after checkout.
 
 
-		if let Some( path ) = env::post_checkout()
+		if let Some( path ) = info.post_checkout()
 		{
 			let mut script = Command::new( path );
 

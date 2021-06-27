@@ -25,17 +25,19 @@
 
 #![ allow( unused_imports, dead_code, missing_docs ) ]
 
-pub mod arg;
-pub mod cfg;
+pub mod cli_arg;
 pub mod env;
 pub mod git;
+pub mod info;
+pub mod info_prod;
 pub mod task;
 
 pub use
 {
-	arg::arg,
-	cfg::cfg,
-	env::env,
+	cli_arg   :: *,
+	env       :: *,
+	info      :: *,
+	info_prod :: *,
 };
 
 use git_version :: git_version;

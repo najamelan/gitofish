@@ -43,100 +43,54 @@
 //!
 use crate::{ import::*, arg, cfg, env };
 
+
+#[ derive( Copy, Clone, Debug, PartialEq, Eq, Hash ) ]
+//
+pub enum RefreshStatus
+{
+	Clean,
+	NewContent,
+}
+
 /// See module docs.
 ///
 //  TODO: evaluate all the error handling. What should be handled here, what should go up the stack...
 //
-pub fn refresh( repo: &mut Repository ) -> Result<(), git2::Error>
+pub fn refresh( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
 {
+	let mut status = RefreshStatus::Clean;
+
+
 	// Be recursive.
 	//
 	for sub in repo.submodules()?
 	{
 		let mut repo = sub.open()?;
 
-		refresh( &mut repo )?
+		status = refresh( &mut repo )?;
 	}
 
-	commit( repo )?;
-	push  ( repo )?;
 
-	// In pre-get, when we committed new stuff we probably want to fail the operation here if it is a push
+	status = commit( repo )?;
+
+	// We push inconditionally, just in case. There might be commits from a prior run
+	// that have not been pushed. So this just makes sure the remote is up to date.
+	//
+	push( repo )?;
+
+
+	// In pre-git, when we committed new stuff we probably want to fail the operation here if it is a push
 	// from dev. As they will have to fetch/merge first anyway.
 
 
-	if arg::is_pre_git()
-	{
-		return Ok(());
-	}
-
-
-	// If this is post-receive, we also do:
-	//
-	// - vc pull --ff-only gitolite deployed:deployed
-	// - vc submodule update
-	//
-	// # We shouldn't overwrite changes on disk... although that has maybe been checked on pre_git.
-	//
-	//   FIXME: this shouldn't be necessary as update checks out.
-	// - vc submodule foreach "git checkout deployed; git reset --hard HEAD@{1}"
-	//
-	// - after checkouts, need etckeeper init.
-	// - if there are GL_OPTION_GTF_POST_CHECKOUT scripts, run them. In fish we always ran as sudo, but should be configurable probably.
-	//
-	// - commit-all
-	// - push-all
-	//
-	let mut gitolite = repo.find_remote( "gitolite" )?;
-	gitolite.fetch(&[ &cfg::branch() ], None, None )?;
-
-	let ref_spec   = format!( "gitolite/{}", &cfg::branch() );
-	let reference  = repo.find_reference( &ref_spec )?;
-	let annotated  = repo.reference_to_annotated_commit( &reference )?;
-	let (merge, _) = repo.merge_analysis( &[ &annotated ] )?;
-
-	if merge == git2::MergeAnalysis::ANALYSIS_FASTFORWARD
-	{
-		let mut r      = repo.find_reference( &cfg::branch() )?;
-		let reflog_msg = format!( "Fast forward merge of gitolite/{} into {}", &cfg::branch(), &cfg::branch() );
-
-		r.set_target( annotated.id(), &reflog_msg )?;
-
-		// TODO: Don't know if this is necessary.
-		//
-		repo.set_head( &cfg::branch() )?;
-		repo.checkout_head( None )?;
-
-
-		// update all submodules.
-		//
-		for mut sub in repo.submodules()?
-		{
-			sub.update( true, None )?;
-		}
-
-		// TODO: verify etckeeper after checkout.
-
-
-		if let Some( path ) = env::post_checkout()
-		{
-			let mut script = Command::new( path );
-
-			let result = script.status();
-
-			// TODO: handle error. This is the only not git2 error in this entire function...
-			// do we use anyhow?
-		}
-
-
-	}
-
-	Ok(())
+	Ok( status )
 }
 
 
-pub fn commit( repo: &mut Repository ) -> Result<(), git2::Error>
+pub fn commit( repo: &mut Repository ) -> Result<RefreshStatus, git2::Error>
 {
+	let mut status = RefreshStatus::Clean;
+
 	// If the provided reference points to a branch, the HEAD will point to that branch, staying attached,
 	// or become attached if it isn’t yet. If the branch doesn’t exist yet, no error will be returned.
 	// The HEAD will then be attached to an unborn branch. <- TODO: whatever this means.
@@ -152,6 +106,8 @@ pub fn commit( repo: &mut Repository ) -> Result<(), git2::Error>
 
 	if !idx.is_empty()
 	{
+		status = RefreshStatus::NewContent;
+
 		// TODO: more robust way of getting user name.
 		//
 		let usr = env().user.as_ref().expect( "A user name to be in environment vars." );
@@ -174,7 +130,7 @@ pub fn commit( repo: &mut Repository ) -> Result<(), git2::Error>
 		repo.commit( Some(&cfg::branch()), &sig, &sig, &msg, &tree, &[&parent] )?;
 	}
 
-	Ok(())
+	Ok(status)
 }
 
 

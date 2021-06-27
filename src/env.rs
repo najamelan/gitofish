@@ -62,6 +62,7 @@ pub struct Env
 	pub ssh_client                  : Option< String >,
 	pub ssh_connection              : Option< String >,
 	pub ssh_original_command        : Option< String >,
+	pub sudo_user                   : Option< String >,
 	pub user                        : Option< String >,
 	pub xdg_runtime_dir             : Option< String >,
 	pub xdg_session_id              : Option< String >,

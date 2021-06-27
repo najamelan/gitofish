@@ -56,6 +56,9 @@ bin:
   - path: src/main.rs
     name: gitofish
 
+  - path: src/test.rs
+    name: gitofish_test
+
 lib:
 
   name: libgitofish

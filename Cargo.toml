@@ -10,6 +10,10 @@ repository = "najamelan/gitofish"
 name = "gitofish"
 path = "src/main.rs"
 
+[[bin]]
+name = "gitofish_test"
+path = "src/test.rs"
+
 [build-dependencies]
 rustc_version = "^0.4"
 

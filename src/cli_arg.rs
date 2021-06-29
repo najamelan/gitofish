@@ -36,7 +36,7 @@ pub struct CliArgs
 {
 	/// Which branch to use for the checkout. If not present, defaults to `deploy`. Gitofish will ignore and not touch any other branches.
 	//
-	#[ clap( short, long, verbatim_doc_comment ) ]
+	#[ clap( short, long, default_value = "deploy", parse(from_str = CliArgs::parse_ref), verbatim_doc_comment ) ]
 	//
 	pub branch: String,
 
@@ -89,6 +89,18 @@ pub struct CliArgs
 	// #[ clap( short, long, parse(from_os_str) ) ]
 	//
 	// pub post_checkout: Option<PathBuf>,
+}
+
+
+impl CliArgs
+{
+	/// git2 will use `/refs/heads/branch` notation, but we don't burden the user with this.
+	/// This will be used by clap to transform the branchname.
+	//
+	pub fn parse_ref( src: &str ) -> String
+	{
+		format!( "refs/heads/{}", src )
+	}
 }
 
 

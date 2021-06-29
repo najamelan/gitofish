@@ -109,13 +109,19 @@ pub fn refresh( repo: &mut Repository, args: &CliArgs ) -> Result<RefreshStatus,
 
 pub fn commit( repo: &mut Repository, args: &CliArgs ) -> Result<RefreshStatus, git2::Error>
 {
-	let mut status = RefreshStatus::Clean;
-
-	// If the provided reference points to a branch, the HEAD will point to that branch, staying attached,
+	// From git2 docs: "If the provided reference points to a branch, the HEAD will point to that branch, staying attached,
 	// or become attached if it isn’t yet. If the branch doesn’t exist yet, no error will be returned.
-	// The HEAD will then be attached to an unborn branch. <- TODO: whatever this means.
+	// The HEAD will then be attached to an unborn branch." <- TODO: whatever this means.
 	//
 	repo.set_head( &args.branch )?;
+
+	// if the repository is clean, we don't need to do anything.
+	//
+	if repo.state() == git2::RepositoryState::Clean
+	{
+		return Ok( RefreshStatus::Clean );
+	}
+
 
 	// git add --all
 	//
@@ -124,33 +130,34 @@ pub fn commit( repo: &mut Repository, args: &CliArgs ) -> Result<RefreshStatus, 
 	idx.add_all( ["."].iter(), git2::IndexAddOption::DEFAULT, None )?;
 
 
-	if !idx.is_empty()
-	{
-		status = RefreshStatus::NewContent;
-
-		// TODO: more robust way of getting user name.
-		//
-		let usr = std::env::var( "USER" ).expect( "A user name to be in environment vars." );
-
-		// TODO: audit hostname crate.
-		// TODO: hostname returns os-str, check utf safety.
-		//
-		let sig = git2::Signature::now( "gitofish", &format!( "{}@{:?}", usr, hostname::get() ) )?;
-
-		let msg = "SECURITY: New/Modified files appeared on server";
-
-		let oid    = idx.write_tree()?;
-		let tree   = repo.find_tree( oid )?;
-		let head   = repo.head()?;
-		let parent = head.peel_to_commit()?;
+	let entry = idx.iter().next().unwrap();
+	let path = std::ffi::CString::new(&entry.path[..]).unwrap();
+	println!( "-- index not empty: len = {:?}, path: {:?}", &idx.len(), path );
 
 
-		// git commit --message="SECURITY: New/Modified files appeared on server"
-		//
-		repo.commit( Some( &args.branch ), &sig, &sig, &msg, &tree, &[&parent] )?;
-	}
+	// TODO: more robust way of getting user name.
+	//
+	let usr = std::env::var( "USER" ).expect( "A user name to be in environment vars." );
 
-	Ok(status)
+	// TODO: audit hostname crate.
+	// TODO: hostname returns os-str, check utf safety.
+	//
+	let sig = git2::Signature::now( "gitofish", &format!( "{}@{:?}", usr, hostname::get() ) )?;
+
+	let msg = "SECURITY: New/Modified files appeared on server";
+
+	let oid    = idx.write_tree()?;
+	let tree   = repo.find_tree( oid )?;
+	let head   = repo.head()?;
+	let parent = head.peel_to_commit()?;
+
+
+	// git commit --message="SECURITY: New/Modified files appeared on server"
+	//
+	repo.commit( Some( &args.branch ), &sig, &sig, &msg, &tree, &[&parent] )?;
+
+
+	Ok( RefreshStatus::NewContent )
 }
 
 

@@ -33,7 +33,7 @@ impl TempRepo
 	pub fn new() -> DynResult<TempRepo>
 	{
 		let tmpdir = TempDir::new( "test_gitofish" )?;
-		let source = PathBuf::from( "tests/data/simple" );
+		let source = PathBuf::from( "tests/data/simple/simple.git" );
 
 		let remote = tmpdir.path().join( "simple_remote" );
 		let local  = tmpdir.path().join( "simple"        );

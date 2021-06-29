@@ -1,17 +1,14 @@
-use crate::{ import::*, Info, task };
+use crate::{ import::*, CliArgs, task };
 
-pub fn pre_git( info: &impl Info )
+pub fn pre_git( args: &CliArgs )
 {
-	let gitdir = info.env().gl_option_gtf_gitdir.as_ref();
-	let tree   = info.env().gl_option_gtf_tree.as_ref();
-	let user   = info.env().gl_option_gtf_user.as_ref();
+	let gitdir = args.git_dir.as_ref().map( |p| p.as_ref() );
 
 	let _span = error_span!
 	(
 		"In PRE_GIT",
-		gitdir = format!( "{:?}", gitdir ).as_str() ,
-		tree   = format!( "{:?}", tree   ).as_str() ,
-		user   = format!( "{:?}", user   ).as_str() ,
+		gitdir = format!( "{:?}", gitdir     ).as_str() ,
+		tree   = format!( "{:?}", &args.tree ).as_str() ,
 	)
 	.entered();
 
@@ -30,23 +27,21 @@ pub fn pre_git( info: &impl Info )
 	//   - path already exists and is a repository
 	//
 	//
-	let dir = match info.env().gl_option_gtf_tree.as_ref()
-	{
-		// This repository is not managed by gitofish. However we get called for every repo
-		// in gitolite.
-		//
-		None    => return       ,
-		Some(d) => Path::new(d) ,
-	};
-
-	let git_dir = info.env().gl_option_gtf_tree.as_ref().map( |p| Path::new(p) );
+	// let dir = match tree
+	// {
+	// 	// This repository is not managed by gitofish. However we get called for every repo
+	// 	// in gitolite.
+	// 	//
+	// 	None    => return       ,
+	// 	Some(d) => Path::new(d) ,
+	// };
 
 
-	let mut repo = task::verify_dir( &dir, git_dir, info ).expect( "verify dir" );
+	let mut repo = task::verify_dir( &args.tree, gitdir, args ).expect( "verify dir" );
 
 	// TODO: Error handling.
 	//
-	task::refresh( &mut repo, info ).expect( "Refresh repo failed" );
+	task::refresh( &mut repo, args ).expect( "Refresh repo failed" );
 }
 
 

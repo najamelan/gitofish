@@ -66,6 +66,7 @@ use
 {
 	libgitofish::*,
 	tracing :: { info } ,
+	clap::Clap,
 };
 
 
@@ -83,28 +84,18 @@ fn main()
 	   .init()
 	;
 
-	let info = InfoProd::new();
+	let args = CliArgs::parse();
 
-	println!( "settings: {:#?}\n", info.cfg() );
-	println!( "env: {:#?}\n"     , info.env() );
-	println!( "args: {:#?}\n"    , info.arg() );
+	println!( "args: {:#?}\n", args );
 
 
-	if info.arg().version
-	{
-		println!( "Gitofish, version: {}", GIT_VERSION );
+	// if let Some( "PRE_GIT" ) = info.arg().positional.first().map( |s| s.as_str() )
+	// {
+	// 	task::pre_git( &info );
+	// }
 
-		std::process::exit( 0 );
-	}
-
-
-	if let Some( "PRE_GIT" ) = info.arg().positional.first().map( |s| s.as_str() )
-	{
-		task::pre_git( &info );
-	}
-
-	else
-	{
-		task::post_receive();
-	}
+	// else
+	// {
+	// 	task::post_receive();
+	// }
 }

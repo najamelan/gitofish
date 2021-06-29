@@ -18,6 +18,7 @@ path = "src/test.rs"
 rustc_version = "^0.4"
 
 [dependencies]
+const_format = "^0.2"
 envy = "^0.4"
 git-version = "^0.3"
 git2 = "^0.13"
@@ -28,13 +29,14 @@ serde = "^1"
 tracing = "^0.1"
 tracing-subscriber = "^0.2"
 
+[dependencies.clap]
+default-features = false
+features = ["derive"]
+version = "^3.0.0-beta"
+
 [dependencies.config_crate]
 package = "config"
 version = "^0.11"
-
-[dependencies.structopt]
-default-features = false
-version = "^0.3"
 
 [dev-dependencies]
 pretty_assertions = "^0.6"
@@ -48,6 +50,7 @@ path = "src/lib.rs"
 [package]
 authors = ["Naja Melan <najamelan@autistici.org>"]
 categories = []
+default-run = "gitofish"
 description = "UPDATE ME"
 documentation = "https://docs.rs/gitofish"
 edition = "2018"

@@ -1,4 +1,4 @@
-use crate::{ import::*, Info };
+use crate::{ import::*, CliArgs };
 
 pub fn post_receive()
 {
@@ -9,7 +9,7 @@ pub fn post_receive()
 }
 
 
-pub fn pull_gitolite( repo: &mut Repository, info: &impl Info ) -> Result<(), git2::Error>
+pub fn pull_gitolite( repo: &mut Repository, args: &CliArgs ) -> Result<(), git2::Error>
 {
 	// If this is post-receive, we also do:
 	//
@@ -27,7 +27,7 @@ pub fn pull_gitolite( repo: &mut Repository, info: &impl Info ) -> Result<(), gi
 	// - commit-all
 	// - push-all
 	//
-	let branch = info.branch();
+	let branch = &args.branch;
 
 	let mut gitolite = repo.find_remote( "gitolite" )?;
 	gitolite.fetch(&[ &branch ], None, None )?;
@@ -60,15 +60,15 @@ pub fn pull_gitolite( repo: &mut Repository, info: &impl Info ) -> Result<(), gi
 		// TODO: verify etckeeper after checkout.
 
 
-		if let Some( path ) = info.post_checkout()
-		{
-			let mut script = Command::new( path );
+		// if let Some( path ) = args.post_checkout
+		// {
+		// 	let mut script = Command::new( path );
 
-			let result = script.status();
+		// 	let result = script.status();
 
-			// TODO: handle error. This is the only not git2 error in this entire function...
-			// do we use anyhow?
-		}
+		// 	// TODO: handle error. This is the only not git2 error in this entire function...
+		// 	// do we use anyhow?
+		// }
 	}
 
 	Ok(())

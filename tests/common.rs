@@ -3,7 +3,7 @@
 
 use
 {
-	std :: { process::Command, error::Error, path::PathBuf } ,
+	std :: { process::Command, error::Error, path::PathBuf, fs, io::Write } ,
 	tempdir :: { TempDir } ,
 };
 
@@ -13,34 +13,88 @@ pub type DynResult<T> = Result<T, Box<dyn Error + Send + Sync> >;
 
 
 
-// returns 2 paths, remote and checkout. In a temp directory.
-// The temp dir will be deleted when dropped.
+/// Creates 2 repositories, a remote and a local in a temp directory.
 //
-pub fn base() -> DynResult< (TempDir, PathBuf, PathBuf) >
+#[ derive( Debug ) ]
+//
+pub struct TempRepo
 {
-	let tmpdir   = TempDir::new( "test_gitofish" )?;
-	let source   = PathBuf::from( "tests/data/simple" );
-	let remote   = tmpdir.path().join( "simple_remote" );
-	let checkout = tmpdir.path().join( "simple" );
+	pub local : PathBuf ,
+	pub remote: PathBuf ,
+	pub tmpdir: TempDir ,
+}
 
-	Command::new( "git" )
 
-		.arg( "clone"  )
-		.arg( "--bare" )
-		.arg( "--branch=deploy" )
-		.arg( source   )
-		.arg( &remote  )
-		.status()?
-	;
 
-	Command::new( "git" )
+impl TempRepo
+{
+	/// Create a new temporary directory and clone tests/data/simple in it.
+	//
+	pub fn new() -> DynResult<TempRepo>
+	{
+		let tmpdir = TempDir::new( "test_gitofish" )?;
+		let source = PathBuf::from( "tests/data/simple" );
 
-		.arg( "clone"   )
-		.arg( "--branch=deploy" )
-		.arg( &remote   )
-		.arg( &checkout )
-		.status()?
-	;
+		let remote = tmpdir.path().join( "simple_remote" );
+		let local  = tmpdir.path().join( "simple"        );
 
-	Ok( (tmpdir, remote, checkout) )
+
+		Command::new( "git" )
+
+			.arg( "clone"           )
+			.arg( "--bare"          )
+			.arg( "--branch=deploy" )
+			.arg( source            )
+			.arg( &remote           )
+			.status()?
+		;
+
+
+		Command::new( "git" )
+
+			.arg( "clone"           )
+			.arg( "--branch=deploy" )
+			.arg( &remote           )
+			.arg( &local            )
+			.status()?
+		;
+
+
+		Ok( Self{ local, remote, tmpdir } )
+	}
+
+
+
+	/// like base but modifies a file in the working directory.
+	//
+	pub fn change_file( self ) -> DynResult<Self>
+	{
+		let file = self.local.join( "file" );
+
+
+		let mut file = fs::OpenOptions::new()
+
+			.append(true)
+			.open( file )?
+		;
+
+
+		writeln!( file, "A new line!" )?;
+
+		Ok( self )
+	}
+
+
+
+	/// like base but modifies a file in the working directory.
+	//
+	pub fn new_file( self ) -> DynResult<Self>
+	{
+		let     name = self.local.join( "file2" );
+		let mut file = fs::File::create( name )?;
+
+		writeln!( file, "A new file!" )?;
+
+		Ok( self )
+	}
 }

@@ -114,10 +114,23 @@ pub fn commit( repo: &mut Repository, args: &CliArgs ) -> Result<RefreshStatus, 
 	// The HEAD will then be attached to an unborn branch." <- TODO: whatever this means.
 	//
 	repo.set_head( &args.branch )?;
+println!( "repo: {:?}", &args.tree );
+
+	let mut status_opts = git2::StatusOptions::new();
+
+	status_opts
+
+		.include_untracked ( true )
+
+		// TODO: not entirely sure what this means, for security we want to know if anything changes in this dir.
+		//
+		.include_unreadable( true )
+	;
+
 
 	// if the repository is clean, we don't need to do anything.
 	//
-	if repo.state() == git2::RepositoryState::Clean
+	if repo.statuses( Some(&mut status_opts) )?.is_empty()
 	{
 		return Ok( RefreshStatus::Clean );
 	}

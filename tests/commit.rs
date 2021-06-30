@@ -2,12 +2,12 @@
 //!
 //! commits all new changes.
 //!
-//! It returns `Result<RefreshStatus, git2::Error>` where RefreshStatus indicates whether there was new content.
+//! It returns `Result<RepoStatus, git2::Error>` where RepoStatus indicates whether there was new content.
 //!
 //! Scenarios:
 //!
-//!   - verify RefreshStatus when no new changes.
-//!   - verify RefreshStatus when there are new changes.
+//!   - verify RepoStatus when no new changes.
+//!   - verify RepoStatus when there are new changes.
 //!   - verify the new changes are committed.
 //!   - verify commit message and author.
 //!
@@ -25,9 +25,10 @@ mod common;
 use
 {
 	common      :: * ,
-	libgitofish :: { *, task::RefreshStatus } ,
+	libgitofish :: { *, task::RepoStatus } ,
 	git2        :: { Repository } ,
 };
+
 
 
 #[ test ]
@@ -51,11 +52,12 @@ fn no_changes() -> DynResult<()>
 
 	// std::thread::park();
 
-	assert_eq!( Ok(RefreshStatus::Clean), task::commit( &mut repo, &args ) );
+	assert_eq!( Ok(RepoStatus::Clean), task::commit( &mut repo, &args ) );
 
 
 	Ok(())
 }
+
 
 
 #[ test ]
@@ -80,13 +82,15 @@ fn changed_file() -> DynResult<()>
 
 	let mut repo = Repository::open( &tmp.local )?;
 
-	// std::thread::park();
+	assert_eq!( Ok(RepoStatus::NewContent), task::commit( &mut repo, &args ) );
+	assert_eq!( Ok(RepoStatus::Clean     ), task::commit( &mut repo, &args ) );
 
-	assert_eq!( Ok(RefreshStatus::NewContent), task::commit( &mut repo, &args ) );
-	assert_eq!( Ok(RefreshStatus::Clean     ), task::commit( &mut repo, &args ) );
+	let commit = repo.head()?.peel_to_commit()?;
+	let author = commit.author();
 
-	// TODO: verfiy the commit and commit message... calling commit again should be clean now.
-
+	assert_eq!( Some( COMMIT_MSG ), commit.message() );
+	assert_eq!( Some( "gitofish" ), author.name()    );
+	// TODO: email
 
 	Ok(())
 }
@@ -111,12 +115,17 @@ fn new_file() -> DynResult<()>
 		..CliArgs::default()
 	};
 
+
 	let mut repo = Repository::open( &tmp.local )?;
 
-	// std::thread::park();
+	assert_eq!( Ok(RepoStatus::NewContent), task::commit( &mut repo, &args ) );
+	assert_eq!( Ok(RepoStatus::Clean     ), task::commit( &mut repo, &args ) );
 
-	assert_eq!( Ok(RefreshStatus::NewContent), task::commit( &mut repo, &args ) );
+	let commit = repo.head()?.peel_to_commit()?;
+	let author = commit.author();
 
+	assert_eq!( Some( COMMIT_MSG ), commit.message() );
+	assert_eq!( Some( "gitofish" ), author.name()    );
 
 	Ok(())
 }

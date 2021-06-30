@@ -46,28 +46,28 @@ use crate::{ import::*, CliArgs };
 
 #[ derive( Copy, Clone, Debug, PartialEq, Eq, Hash ) ]
 //
-pub enum RefreshStatus
+pub enum RepoStatus
 {
 	Clean,
 	NewContent,
 }
 
-impl RefreshStatus
+impl RepoStatus
 {
 	/// This allows to update the status. NewContent always has bigger weight.
 	/// That is for status to be clean, both self and new_status must be clean.
 	//
 	fn merge( self, new: Self ) -> Self
 	{
-		if    self == RefreshStatus::NewContent
-		   || new  == RefreshStatus::NewContent
+		if    self == RepoStatus::NewContent
+		   || new  == RepoStatus::NewContent
 		{
-			RefreshStatus::NewContent
+			RepoStatus::NewContent
 		}
 
 		else
 		{
-			RefreshStatus::Clean
+			RepoStatus::Clean
 		}
 	}
 }
@@ -76,9 +76,9 @@ impl RefreshStatus
 ///
 //  TODO: evaluate all the error handling. What should be handled here, what should go up the stack...
 //
-pub fn refresh( repo: &mut Repository, args: &CliArgs ) -> Result<RefreshStatus, git2::Error>
+pub fn refresh( repo: &mut Repository, args: &CliArgs ) -> Result<RepoStatus, git2::Error>
 {
-	let status = RefreshStatus::Clean;
+	let status = RepoStatus::Clean;
 
 
 	// Be recursive.
@@ -107,7 +107,7 @@ pub fn refresh( repo: &mut Repository, args: &CliArgs ) -> Result<RefreshStatus,
 }
 
 
-pub fn commit( repo: &mut Repository, args: &CliArgs ) -> Result<RefreshStatus, git2::Error>
+pub fn commit( repo: &mut Repository, args: &CliArgs ) -> Result<RepoStatus, git2::Error>
 {
 	// From git2 docs: "If the provided reference points to a branch, the HEAD will point to that branch, staying attached,
 	// or become attached if it isn’t yet. If the branch doesn’t exist yet, no error will be returned.
@@ -132,7 +132,7 @@ println!( "repo: {:?}", &args.tree );
 	//
 	if repo.statuses( Some(&mut status_opts) )?.is_empty()
 	{
-		return Ok( RefreshStatus::Clean );
+		return Ok( RepoStatus::Clean );
 	}
 
 
@@ -141,7 +141,7 @@ println!( "repo: {:?}", &args.tree );
 	let mut idx = repo.index()?;
 
 	idx.add_all( ["."].iter(), git2::IndexAddOption::DEFAULT, None )?;
-
+	idx.write()?; // we must write it to disk.
 
 	let entry = idx.iter().next().unwrap();
 	let path = std::ffi::CString::new(&entry.path[..]).unwrap();
@@ -170,7 +170,7 @@ println!( "repo: {:?}", &args.tree );
 	repo.commit( Some( &args.branch ), &sig, &sig, &msg, &tree, &[&parent] )?;
 
 
-	Ok( RefreshStatus::NewContent )
+	Ok( RepoStatus::NewContent )
 }
 
 

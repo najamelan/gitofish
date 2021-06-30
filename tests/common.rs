@@ -11,6 +11,7 @@ use
 
 pub type DynResult<T> = Result<T, Box<dyn Error + Send + Sync> >;
 
+pub static COMMIT_MSG: &str = "SECURITY: New/Modified files appeared on server";
 
 
 /// Creates 2 repositories, a remote and a local in a temp directory.

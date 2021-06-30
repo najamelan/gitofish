@@ -13,11 +13,11 @@
 //!
 //! Tested:
 //!
-//! - clean working dir
-//! - changed file
-//! - new file
-//! - deleted file
-//! - renamed file
+//! ✓ clean working dir
+//! ✓ changed file
+//! ✓ new file
+//! ✓ deleted file
+//! ✓ renamed file
 //! - sub modules...
 //!
 mod common;
@@ -26,7 +26,6 @@ use
 {
 	common      :: * ,
 	libgitofish :: { *, task::RepoStatus } ,
-	git2        :: { Repository } ,
 };
 
 
@@ -35,25 +34,10 @@ use
 //
 fn no_changes() -> DynResult<()>
 {
-	let tmp = TempRepo::new()?;
+	let      tmp = TempRepo::new()?;
+	let mut repo = tmp.repo()?;
 
-
-	let args = CliArgs
-	{
-		branch: CliArgs::parse_ref( "deploy" ),
-		remote: tmp.remote.to_str().expect( "path.to_str" ).to_string(),
-		tree  : tmp.local.clone(),
-
-		..CliArgs::default()
-	};
-
-
-	let mut repo = Repository::open( &tmp.local )?;
-
-	// std::thread::park();
-
-	assert_eq!( Ok(RepoStatus::Clean), task::commit( &mut repo, &args ) );
-
+	assert_eq!( Ok(RepoStatus::Clean), task::commit( &mut repo, &tmp.args() ) );
 
 	Ok(())
 }
@@ -69,21 +53,10 @@ fn changed_file() -> DynResult<()>
 		.change_file()?
 	;
 
+	let mut repo = tmp.repo()?;
 
-	let args = CliArgs
-	{
-		branch: CliArgs::parse_ref( "deploy" ) ,
-		remote: tmp.remote.to_str().expect( "path.to_str" ).to_string(),
-		tree  : tmp.local.clone(),
-
-		..CliArgs::default()
-	};
-
-
-	let mut repo = Repository::open( &tmp.local )?;
-
-	assert_eq!( Ok(RepoStatus::NewContent), task::commit( &mut repo, &args ) );
-	assert_eq!( Ok(RepoStatus::Clean     ), task::commit( &mut repo, &args ) );
+	assert_eq!( Ok(RepoStatus::NewContent), task::commit( &mut repo, &tmp.args() ) );
+	assert_eq!( Ok(RepoStatus::Clean     ), task::commit( &mut repo, &tmp.args() ) );
 
 	let commit = repo.head()?.peel_to_commit()?;
 	let author = commit.author();
@@ -106,20 +79,35 @@ fn new_file() -> DynResult<()>
 		.new_file()?
 	;
 
+	let mut repo = tmp.repo()?;
 
-	let args = CliArgs
-	{
-		branch: CliArgs::parse_ref( "deploy" ) ,
-		remote: tmp.remote.to_str().expect( "path.to_str" ).to_string(),
-		tree: tmp.local.clone(),
-		..CliArgs::default()
-	};
+	assert_eq!( Ok(RepoStatus::NewContent), task::commit( &mut repo, &tmp.args() ) );
+	assert_eq!( Ok(RepoStatus::Clean     ), task::commit( &mut repo, &tmp.args() ) );
+
+	let commit = repo.head()?.peel_to_commit()?;
+	let author = commit.author();
+
+	assert_eq!( Some( COMMIT_MSG ), commit.message() );
+	assert_eq!( Some( "gitofish" ), author.name()    );
+
+	Ok(())
+}
 
 
-	let mut repo = Repository::open( &tmp.local )?;
 
-	assert_eq!( Ok(RepoStatus::NewContent), task::commit( &mut repo, &args ) );
-	assert_eq!( Ok(RepoStatus::Clean     ), task::commit( &mut repo, &args ) );
+#[ test ]
+//
+fn rename_file() -> DynResult<()>
+{
+	let tmp = TempRepo::new()?
+
+		.rename_file()?
+	;
+
+	let mut repo = tmp.repo()?;
+
+	assert_eq!( Ok(RepoStatus::NewContent), task::commit( &mut repo, &tmp.args() ) );
+	assert_eq!( Ok(RepoStatus::Clean     ), task::commit( &mut repo, &tmp.args() ) );
 
 	let commit = repo.head()?.peel_to_commit()?;
 	let author = commit.author();

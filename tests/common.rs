@@ -5,6 +5,7 @@ use
 {
 	std :: { process::Command, error::Error, path::PathBuf, fs, io::Write } ,
 	tempdir :: { TempDir } ,
+	libgitofish :: *,
 };
 
 
@@ -66,6 +67,31 @@ impl TempRepo
 
 
 
+	/// Get standard cli arguments corresponding to this repository.
+	//
+	pub fn args( &self ) -> CliArgs
+	{
+		CliArgs
+		{
+			branch: CliArgs::parse_ref( "deploy" )                           ,
+			remote: self.remote.to_str().expect( "path.to_str" ).to_string() ,
+			tree  : self.local.clone()                                       ,
+
+			..CliArgs::default()
+		}
+	}
+
+
+
+	/// Get the `git2::Repository` for this repo.
+	//
+	pub fn repo( &self ) -> DynResult< git2::Repository >
+	{
+		Ok( git2::Repository::open( &self.local )? )
+	}
+
+
+
 	/// like base but modifies a file in the working directory.
 	//
 	pub fn change_file( self ) -> DynResult<Self>
@@ -81,6 +107,20 @@ impl TempRepo
 
 
 		writeln!( file, "A new line!" )?;
+
+		Ok( self )
+	}
+
+
+
+	/// like base but modifies a file in the working directory.
+	//
+	pub fn rename_file( self ) -> DynResult<Self>
+	{
+		let old = self.local.join( "file"         );
+		let new = self.local.join( "file_renamed" );
+
+		fs::rename( old, new )?;
 
 		Ok( self )
 	}

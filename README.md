@@ -21,7 +21,7 @@ The main advantages of this system are:
 - most developers already use git as a version control system. This allows to just have a deploy branch in your repository
   and push to that in order to deploy your code.
 - you configure/program everything conveniently on your developer machine and push rather than having to manage a server
-
+  with ftp.
 - git has good support for multiple remotes, so you can easily test staging and production separately from the same repo.
 - it also works with etckeeper so you can also configure your server locally and push rather than modify configuration files
   through ssh.

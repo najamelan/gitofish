@@ -34,8 +34,8 @@ use
 //
 fn no_changes() -> DynResult<()>
 {
-	let      tmp = TempRepo::new()?;
-	let mut repo = tmp.repo()?;
+	let      tmp = TempRepo::new() ?;
+	let mut repo = tmp.repo()      ?;
 
 	assert_eq!( Ok(RepoStatus::Clean), task::commit( &mut repo, &tmp.args() ) );
 

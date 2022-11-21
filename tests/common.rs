@@ -24,6 +24,7 @@ pub struct TempRepo
 	pub local : PathBuf ,
 	pub remote: PathBuf ,
 	pub tmpdir: TempDir ,
+	pub sub   : Option<Box< TempRepo >>,
 }
 
 
@@ -62,7 +63,7 @@ impl TempRepo
 		;
 
 
-		Ok( Self{ local, remote, tmpdir } )
+		Ok( Self{ local, remote, tmpdir, sub: None } )
 	}
 
 
@@ -135,6 +136,71 @@ impl TempRepo
 		let mut file = fs::File::create( name )?;
 
 		writeln!( file, "A new file!" )?;
+
+		Ok( self )
+	}
+
+
+
+	/// like base but modifies a file in the working directory.
+	//
+	pub fn add_sub( self ) -> DynResult<Self>
+	{
+		let source = PathBuf::from( "tests/data/sub/sub.git" );
+
+		let remote = self.tmpdir.path().join( "sub_remote" );
+		let local  = self.tmpdir.path().join( "simple/sub" );
+
+
+		Command::new( "git" )
+
+			.arg( "clone"           )
+			.arg( "--bare"          )
+			.arg( "--branch=deploy" )
+			.arg( source            )
+			.arg( &remote           )
+			.status()?
+		;
+
+
+		Command::new( "git" )
+
+			.arg( "submodule"  )
+			.arg( "add"        )
+			.arg( &remote      )
+			.arg( &local       )
+			.status()?
+		;
+
+
+		Command::new( "git" )
+
+			.arg( "submodule"  )
+			.arg( "set-branch" )
+			.arg( "deploy"     )
+			.arg( &local       )
+			.status()?
+		;
+
+
+		Command::new( "git" )
+
+			.arg( "submodule" )
+			.arg( "update"    )
+			.arg( "--init"    )
+			.arg( &local      )
+			.status()?
+		;
+
+
+		Command::new( "git" )
+
+			.arg( "commit"        )
+			.arg( "--message"     )
+			.arg( "Add submodule" )
+			.status()?
+		;
+
 
 		Ok( self )
 	}

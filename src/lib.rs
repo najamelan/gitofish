@@ -47,7 +47,7 @@ mod import
 		once_cell    :: { sync::Lazy                                                     } ,
 		serde        :: { Deserialize                                                    } ,
 		std          :: { path::{ PathBuf, Path }, sync::mpsc::channel, process::Command } ,
-		clap         :: { Clap, crate_version                                            } ,
+		clap         :: { Parser as ClapParser, crate_version                            } ,
 		tracing      :: { trace, debug, info, warn, error, span, error_span              } ,
 	};
 

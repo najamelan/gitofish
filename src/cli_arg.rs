@@ -29,28 +29,28 @@ static VERSION: &str = const_format::formatcp!( "version: {}, commit: {}", clap:
 /// Remote can be anything git understands and the current user has push and rewrite permissions to.
 ///
 //
-#[ derive( Clap, Debug, Default ) ]
+#[ derive( ClapParser, Debug, Default ) ]
 #[ clap( verbatim_doc_comment, version = VERSION ) ]
 //
 pub struct CliArgs
 {
 	/// Which branch to use for the checkout. If not present, defaults to `deploy`. Gitofish will ignore and not touch any other branches.
 	//
-	#[ clap( short, long, default_value = "deploy", parse(from_str = CliArgs::parse_ref), verbatim_doc_comment ) ]
+	#[ clap( short, long, default_value = "deploy", value_parser, verbatim_doc_comment ) ]
 	//
 	pub branch: String,
 
 
 	/// Only used on initial repository clone. The path to a detached git dir. Will default to the working directory (as specified by --tree).
 	//
-	#[ clap( short, long, parse(from_os_str), verbatim_doc_comment ) ]
+	#[ clap( short, long, value_parser, verbatim_doc_comment ) ]
 	//
 	pub git_dir: Option<PathBuf>,
 
 
 	/// Where to log debugging information. Will default to `/var/log/gitofish.log`. You can pass `stdout`.
 	//
-	#[ clap( short, long, parse(from_os_str), verbatim_doc_comment ) ]
+	#[ clap( short, long, value_parser, verbatim_doc_comment ) ]
 	//
 	pub log: Option<PathBuf>,
 
@@ -71,7 +71,7 @@ pub struct CliArgs
 
 	/// The path to the checked out files.
 	//
-	#[ clap( short, long, parse(from_os_str), verbatim_doc_comment ) ]
+	#[ clap( short, long, value_parser, verbatim_doc_comment ) ]
 	//
 	pub tree: PathBuf,
 

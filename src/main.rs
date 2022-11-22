@@ -66,7 +66,7 @@ use
 {
 	libgitofish::*,
 	tracing :: { info } ,
-	clap::Clap,
+	clap::Parser as _,
 };
 
 
@@ -74,9 +74,9 @@ use
 
 fn main()
 {
-	let _ = tracing_subscriber::fmt::Subscriber::builder()
+	tracing_subscriber::fmt::Subscriber::builder()
 
-		.with_timer( tracing_subscriber::fmt::time::ChronoLocal::rfc3339() )
+		.with_timer( tracing_subscriber::fmt::time::LocalTime::rfc_3339() )
 		// .json()
 	   // .with_max_level(tracing::Level::TRACE)
 	   // .with_env_filter( "trace,polling=warn,async_io=warn,async_std::warn" )

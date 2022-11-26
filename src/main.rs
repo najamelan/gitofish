@@ -86,6 +86,18 @@ fn main()
 
 	let args = CliArgs::parse();
 
+
+	println!( "args: {:#?}\n", args );
+
+	// If this is an empty string, it's unset in the env variable that we get passed in.
+	// This is not a repository managed by gitofish.
+	//
+	if args.tree.as_path().as_os_str().is_empty()
+	{
+		std::process::exit(0)
+	}
+
+
 	let args = match args.validate()
 	{
 		Ok(a) => a,
@@ -96,16 +108,10 @@ fn main()
 		}
 	};
 
-	println!( "args: {:#?}\n", args );
 
-
-	// if let Some( "PRE_GIT" ) = info.arg().positional.first().map( |s| s.as_str() )
-	// {
-	// 	task::pre_git( &info );
-	// }
-
-	// else
-	// {
-	// 	task::post_receive();
-	// }
+	match args.command
+	{
+		Commands::PreGit{..} => task::pre_git( &args ),
+		Commands::PostReceive{..} => task::post_receive( &args ),
+	};
 }

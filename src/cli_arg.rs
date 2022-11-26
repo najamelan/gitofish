@@ -75,19 +75,38 @@ pub struct CliArgs
 	pub tree: PathBuf,
 
 
+	/// The the user that owns the checked out files.
+	//
+	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	//
+	pub owner: String,
+
+
+	/// The gitolite user triggering the operation.
+	//
+	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	//
+	pub user: String,
+
+
 	#[command(subcommand)]
-	command: Option<Commands>,
+	pub command: Commands,
 }
 
 
-
+#[allow(variant_size_differences)]
 #[derive(Subcommand, Debug)]
 //
-enum Commands
+pub enum Commands
 {
 	/// The pre git trigger of Gitolite
 	//
-	PreGit {},
+	PreGit
+	{
+		#[ arg( short, long, value_parser ) ]
+		//
+		mode: Mode,
+	},
 
 	/// The post-receive hook in all Gitolite repositories
 	//
@@ -106,6 +125,18 @@ enum Commands
 		//
 		remote: Option<String>,
 	}
+}
+
+
+#[derive(Copy, Clone, Debug, strum::EnumString)]
+//
+pub enum Mode
+{
+	#[strum(serialize = "R")]
+	Read,
+
+	#[strum(serialize = "W")]
+	Write,
 }
 
 impl CliArgs

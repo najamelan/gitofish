@@ -1,6 +1,6 @@
 use crate::{ import::*, CliArgs };
 
-pub fn post_receive()
+pub fn post_receive( _args: &CliArgs )
 {
 	info!( "In post-receive" );
 
@@ -32,21 +32,21 @@ pub fn pull_gitolite( repo: &mut Repository, args: &CliArgs ) -> Result<(), git2
 	let mut gitolite = repo.find_remote( "gitolite" )?;
 	gitolite.fetch(&[ &branch ], None, None )?;
 
-	let ref_spec   = format!( "gitolite/{}", &branch );
+	let ref_spec   = format!( "gitolite/{}", branch );
 	let reference  = repo.find_reference( &ref_spec )?;
 	let annotated  = repo.reference_to_annotated_commit( &reference )?;
 	let (merge, _) = repo.merge_analysis( &[ &annotated ] )?;
 
 	if merge == git2::MergeAnalysis::ANALYSIS_FASTFORWARD
 	{
-		let mut r      = repo.find_reference( &branch )?;
-		let reflog_msg = format!( "Fast forward merge of gitolite/{} into {}", &branch, &branch );
+		let mut r      = repo.find_reference( branch )?;
+		let reflog_msg = format!( "Fast forward merge of gitolite/{} into {}", branch, branch );
 
 		r.set_target( annotated.id(), &reflog_msg )?;
 
 		// TODO: Don't know if this is necessary.
 		//
-		repo.set_head( &branch )?;
+		repo.set_head( branch )?;
 		repo.checkout_head( None )?;
 
 

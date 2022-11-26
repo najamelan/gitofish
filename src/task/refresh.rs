@@ -17,7 +17,7 @@
 //!   - commit-all
 //!   - push-all
 //!
-//!    - vc pull --ff-only gitolite deployed:deployed
+//!   - vc pull --ff-only gitolite deployed:deployed
 //!   - vc submodule update
 //!
 //!     # We shouldn't overwrite changes on disk... although that has maybe been checked on pre_git.

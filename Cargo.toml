@@ -28,12 +28,16 @@ tracing = "^0.1"
 
 [dependencies.clap]
 default-features = false
-features = ["derive", "std", "cargo"]
+features = ["derive", "std", "cargo", "help", "usage"]
 version = "^4"
 
 [dependencies.config_crate]
 package = "config"
 version = "^0.13"
+
+[dependencies.strum]
+features = ["derive"]
+version = "^0.24"
 
 [dependencies.tracing-subscriber]
 default-features = false

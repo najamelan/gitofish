@@ -86,6 +86,16 @@ fn main()
 
 	let args = CliArgs::parse();
 
+	let args = match args.validate()
+	{
+		Ok(a) => a,
+		Err(e) =>
+		{
+			println!( "Got invalid input arguments: {e}" );
+			std::process::exit( 1 );
+		}
+	};
+
 	println!( "args: {:#?}\n", args );
 
 

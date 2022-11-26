@@ -1,16 +1,25 @@
 use crate::{ import::*, CliArgs, task };
 
 
-// TODO: actually implement functionality.
+// Verify directory conditions for the dir (worktree) and git_dir (normally .git inside dir, but can be detached).
+// Scenarios for both dir and git_dir:
+// - doesn't exist
+// - we don't have permissions
+// - exists but is not a directory
+// - exists but is empty
+// - exists but is not empty and not a repository
+// - exists and is repository but does not have the remote.
 //
 pub fn verify_dir( dir: &Path, git_dir: Option< &Path >, args: &CliArgs ) -> Result<Repository, Box<dyn std::error::Error> >
 {
-	// We will clone again, so clear git_dir as well.
+	// If it exists but it's not a directory, remove it.
 	//
 	if dir.exists() && !dir.is_dir()
 	{
 		remove_path( dir )?;
 
+		// We will clone again, so clear git_dir as well.
+		//
 		if let Some(d) = git_dir
 		{
 			remove_path( d )?;
@@ -45,14 +54,14 @@ pub fn verify_dir( dir: &Path, git_dir: Option< &Path >, args: &CliArgs ) -> Res
 			//
 			else if dir.read_dir()?.next().is_none()
 			{
-				task::create( &dir, args )?
+				task::create( dir, args )?
 			}
 
 			// it's not a repo, and it's not empty.
 			//
 			else
 			{
-				todo!()
+				Err("Cannot use {dir} for ")?
 			}
 		;
 

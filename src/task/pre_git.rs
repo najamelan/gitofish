@@ -1,8 +1,14 @@
 use crate::{ import::*, CliArgs, task };
 
+
+// - Test if repository is managed by gitofish
+// - Test if repository exists.
+//   - if it doesn't, run create.
+// - run refresh.
+//
 pub fn pre_git( args: &CliArgs )
 {
-	let gitdir = args.git_dir.as_ref().map( |p| p.as_ref() );
+	let gitdir = args.gitdir.as_ref().map( AsRef::as_ref );
 
 	let _span = error_span!
 	(
@@ -13,11 +19,7 @@ pub fn pre_git( args: &CliArgs )
 	.entered();
 
 
-	// - Test if repository is managed by gitofish
-	// - Test if repository exists.
-	//   - if it doesn't, run create.
-	// - run refresh.
-	//
+
 	// Scenarios:
 	// - path isn't a directory -> remove it, remove git_dir as well. OK
 	// - path doesn't exist -> clone into it.
@@ -27,7 +29,7 @@ pub fn pre_git( args: &CliArgs )
 	//   - path already exists and is a repository
 	//
 	//
-	// let dir = match tree
+	// let dir = match args.tree
 	// {
 	// 	// This repository is not managed by gitofish. However we get called for every repo
 	// 	// in gitolite.

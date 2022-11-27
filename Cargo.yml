@@ -80,6 +80,7 @@ dependencies:
 
   # Private dependencies
   #
+  anyhow            : ^1
   clap              : { version: ^4, default-features: false, features: [derive, std, cargo, help, usage] }
   config_crate      : { version: ^0.13, package: config }
   const_format      : ^0.2

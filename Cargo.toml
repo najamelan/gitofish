@@ -18,6 +18,7 @@ path = "src/test.rs"
 rustc_version = "^0.4"
 
 [dependencies]
+anyhow = "^1"
 const_format = "^0.2"
 git-version = "^0.3"
 git2 = "^0.15"

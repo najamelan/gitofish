@@ -31,12 +31,34 @@ static VERSION: &str = const_format::formatcp!( "version: {}, commit: {}", clap:
 /// Remote can be anything git understands and the current user has push and rewrite permissions
 /// to.
 ///
+/// sample invocation:
+/// ```shell
+/// sudo -nu $GL_OPTION_GTF_USER gitofish \
+///   --gitdir=$GL_OPTION_GTF_GITDIR \
+///   --tree=$GL_OPTION_GTF_TREE \
+///   --owner=$GL_OPTION_GTF_USER \
+///   --git_user=$USER \
+///   --remote_user=$GL_USER \
+///   --log=$logfile \
+///   --repo=$GL_REPO \
+///   --gitolite_domain=localhost \
+///   pre_git\
+///   --mode=$RW
+/// ```
+///
 //
 #[ derive( ClapParser, Debug ) ]
 #[ command( author, name="gitofish", verbatim_doc_comment, version = VERSION ) ]
 //
 pub struct CliArgs
 {
+	/// The name of the repository in gitolite.
+	//
+	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	//
+	pub repo: String,
+
+
 	/// Which branch to use for the checkout. If not present, defaults to `deploy`.
 	/// Gitofish will ignore and not touch any other branches.
 	//
@@ -75,6 +97,14 @@ pub struct CliArgs
 	pub tree: PathBuf,
 
 
+	/// The the user gitolite runs under.
+	/// This will be used to reconstruct the URL for the remote to clone from.
+	//
+	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	//
+	pub git_user: String,
+
+
 	/// The the user that owns the checked out files.
 	//
 	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
@@ -83,10 +113,11 @@ pub struct CliArgs
 
 
 	/// The gitolite user triggering the operation.
+	/// gitolite env: $GL_USER
 	//
 	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
 	//
-	pub user: String,
+	pub remote_user: String,
 
 
 	#[command(subcommand)]
@@ -118,12 +149,6 @@ pub enum Commands
 		#[ arg( short, long, value_parser ) ]
 		//
 		post_checkout: Option<PathBuf>,
-
-		/// Only used on initial repository clone. The remote from which to clone.
-		//
-		#[ arg( short, long, verbatim_doc_comment ) ]
-		//
-		remote: Option<String>,
 	}
 }
 
@@ -150,8 +175,15 @@ impl CliArgs
 	}
 
 
-	pub fn validate( self ) -> Result<Self, &'static str>
+	pub fn validate( mut self ) -> Result<Self, &'static str>
 	{
+		// Don't leave empty strings around.
+		//
+		if let Some(s) = self.gitdir.take()
+		{
+			if !s.as_path().as_os_str().is_empty() { self.gitdir = Some(s); }
+		}
+
 		Ok(self)
 	}
 }

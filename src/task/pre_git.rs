@@ -6,7 +6,24 @@ use crate::{ import::*, CliArgs, task };
 //   - if it doesn't, run create.
 // - run refresh.
 //
-pub fn pre_git( args: &CliArgs )
+// At a high level:
+// - from the tree, commit all and push to gitolite.
+//   as no merges are allowed, this will stop any push from the dev if diverged.
+// - We can exit non-zero as well to stop gitolite from continuing. We can send error
+//   messages to the user.
+//
+// Steps:
+// - verify directories:
+//   valid:
+//   - they don't exist, create,
+//   - existing:
+//     - content owner needs permissions to the tree and gitdir
+//     - must be directories
+//     - must either contain the repo or be empty
+// - in tree git add all
+// - in tree git push all --force
+//
+pub fn pre_git( args: &CliArgs ) -> anyhow::Result<()>
 {
 	let gitdir = args.gitdir.as_ref().map( AsRef::as_ref );
 
@@ -19,31 +36,11 @@ pub fn pre_git( args: &CliArgs )
 	.entered();
 
 
+	let mut repo = task::verify_dir( &args.tree, gitdir, args ).context( "verify directories in pre_git for: {args:?}" )?;
 
-	// Scenarios:
-	// - path isn't a directory -> remove it, remove git_dir as well. OK
-	// - path doesn't exist -> clone into it.
-	// - path is a dir but not empty.
-	//   - not a repository -> git init in it and set gitolite as remote.
-	//   - path already exists and is a repository but it holds the wrong repo/remote.
-	//   - path already exists and is a repository
-	//
-	//
-	// let dir = match args.tree
-	// {
-	// 	// This repository is not managed by gitofish. However we get called for every repo
-	// 	// in gitolite.
-	// 	//
-	// 	None    => return       ,
-	// 	Some(d) => Path::new(d) ,
-	// };
+	task::refresh( &mut repo, args ).context( "Refresh repo failed" )?;
 
-
-	let mut repo = task::verify_dir( &args.tree, gitdir, args ).expect( "verify dir" );
-
-	// TODO: Error handling.
-	//
-	task::refresh( &mut repo, args ).expect( "Refresh repo failed" );
+	Ok(())
 }
 
 

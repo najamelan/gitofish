@@ -3,7 +3,7 @@ use crate::{ import::*, CliArgs };
 
 // TODO: actually implement functionality.
 //
-pub fn create( dir: &Path, _args: &CliArgs ) -> Result<Repository, git2::Error>
+pub fn create( tree: &Path, _git_dir: Option<&Path>, _args: &CliArgs ) -> anyhow::Result<Repository>
 {
-	Repository::init( dir )
+	Ok(Repository::init( tree )?)
 }

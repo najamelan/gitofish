@@ -41,6 +41,7 @@ mod import
 {
 	pub(crate) use
 	{
+		anyhow       :: { Context as _, anyhow                                           } ,
 		config_crate :: { Config as ConfigCrate, ConfigError                             } ,
 		git_version  :: { git_version                                                    } ,
 		git2         :: { Repository                                                     } ,

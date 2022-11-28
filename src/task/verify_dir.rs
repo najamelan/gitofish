@@ -31,7 +31,88 @@ use crate::{ import::*, CliArgs, task };
 //
 pub fn verify_dir( tree: &Path, git_dir: Option< &Path >, args: &CliArgs ) -> anyhow::Result<Repository>
 {
-	// If it exists but it's not a directory, for now error.
+	// if git_dir is set
+	//   if git_dir exists
+	//     - does it have config core.worktree set to tree?
+	//   else
+	//     if tree exists, remove it
+	//     call git clone
+	//
+	// if git_dir is not set
+	//   if tree exists
+	//     - do useful things
+	//   else create
+	//
+	if let Some(g) = git_dir
+	{
+		if g.exists()
+		{
+			// Try to open the repository
+			//
+			let repo = Repository::open( g ).context( "Opening git dir as repo at: {g:?}" )?;
+
+			// Assert config core.workdir points to tree.
+			//
+			let config   = repo.config().context( "Opening git config file for {g:?}" )?;
+			let worktree = config.get_path( "core.worktree" ).context( "Read core.worktree from git config file for {g:?}" )?;
+
+			if worktree != tree
+			{
+				return Err( anyhow!( "Git dir {g:?} has a core.worktree ({worktree:?}) set to a different path than gitolite configuration: ({tree:?})." ) );
+			}
+
+			// We assume that tree is in a decent state, and if it is not, well when we operate on it it will throw errors then.
+		}
+
+		// Clone
+		// git clone --separate-git-dir git_dir tree
+		// set core.worktree
+		// if configured, remove .git in worktree for security reasons.
+		// like everyone else, use git cli for ssh because libgit2 fails to use .ssh/config.
+		// We actually control the ssh keys for gitofish, so it wouldn't be to hard in this
+		// case, but also libgit2 rust port does not support --separate-git-dir.
+		// TODO: test thoroughly and verify error messages are reasonable. eg. what if that branch does not exist?
+		//
+		let     remote   = format!( "{}@{}:{}", args.remote_user, args.gitolite_domain, args.repo );
+		let mut separate = OsString::from( "--separate-git-dir=" );
+		separate.push(g);
+
+		Command::new( "git" )
+
+			.arg( "clone"                               )
+			.arg( "--recursive"                         )
+			.arg( "--single-branch"                     )
+			.arg( format!( "--branch={}", args.branch ) )
+			.arg( separate                              )
+			.arg( "--"                                  )
+			.arg( &remote                               )
+			.arg( &args.tree                            )
+			.status()
+			.context( format!( "cloning repo {}", args.repo ) )?
+		;
+
+		// Git clone does not set this automatically.
+		//
+		Command::new( "git" )
+			.current_dir( g )
+			.arg( "config"        )
+			.arg( "core.worktree" )
+			.arg( tree            )
+			.status()
+			.context( format!( "setting core.workree in newly cloned repo {:?}", g ) )?
+		;
+
+		// If asked, remove the .git entry in tree.
+		//
+		if args.remove_dot_git
+		{
+			std::fs::remove_file( tree.join(".git") )
+
+				.context( format!( "Removing .git in tree: {tree:?}" ) )?
+		}
+	}
+
+
 	//
 	if tree.exists() && !tree.is_dir()
 	{

@@ -42,6 +42,7 @@ static VERSION: &str = const_format::formatcp!( "version: {}, commit: {}", clap:
 ///   --log=$logfile \
 ///   --repo=$GL_REPO \
 ///   --gitolite_domain=localhost \
+///   --remove_dot_git \
 ///   pre_git\
 ///   --mode=$RW
 /// ```
@@ -54,7 +55,7 @@ pub struct CliArgs
 {
 	/// The name of the repository in gitolite.
 	//
-	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	#[ arg( short, long, verbatim_doc_comment ) ]
 	//
 	pub repo: String,
 
@@ -62,7 +63,7 @@ pub struct CliArgs
 	/// Which branch to use for the checkout. If not present, defaults to `deploy`.
 	/// Gitofish will ignore and not touch any other branches.
 	//
-	#[ arg( short, long, default_value = "deploy", value_parser, verbatim_doc_comment ) ]
+	#[ arg( short, long, default_value = "deploy", verbatim_doc_comment ) ]
 	//
 	pub branch: String,
 
@@ -70,7 +71,7 @@ pub struct CliArgs
 	/// Only used on initial repository clone. The path to a detached git dir.
 	/// Will default to the working directory (as specified by --tree).
 	//
-	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	#[ arg( short, long, verbatim_doc_comment ) ]
 	//
 	pub gitdir: Option<PathBuf>,
 
@@ -78,7 +79,7 @@ pub struct CliArgs
 	/// Where to log debugging information. Will default to `/var/log/gitofish.log`.
 	/// You can pass `stdout`.
 	//
-	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	#[ arg( short, long, verbatim_doc_comment ) ]
 	//
 	pub log: Option<PathBuf>,
 
@@ -92,7 +93,7 @@ pub struct CliArgs
 
 	/// The path to the checked out files.
 	//
-	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	#[ arg( short, long, verbatim_doc_comment ) ]
 	//
 	pub tree: PathBuf,
 
@@ -100,14 +101,14 @@ pub struct CliArgs
 	/// The the user gitolite runs under.
 	/// This will be used to reconstruct the URL for the remote to clone from.
 	//
-	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	#[ arg( long, verbatim_doc_comment ) ]
 	//
 	pub git_user: String,
 
 
 	/// The the user that owns the checked out files.
 	//
-	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	#[ arg( short, long, verbatim_doc_comment ) ]
 	//
 	pub owner: String,
 
@@ -115,9 +116,28 @@ pub struct CliArgs
 	/// The gitolite user triggering the operation.
 	/// gitolite env: $GL_USER
 	//
-	#[ arg( short, long, value_parser, verbatim_doc_comment ) ]
+	#[ arg( long, verbatim_doc_comment ) ]
 	//
 	pub remote_user: String,
+
+
+	/// The domain where the remote gitolite repo lives. This will be used as a remote like:
+	/// git_user@gitolite_domain:repo.
+	/// Usually localhost.
+	//
+	#[ arg( long, verbatim_doc_comment ) ]
+	//
+	pub gitolite_domain: String,
+
+
+	/// Remove the .git link in a repository with a separate git dir. Only relevant
+	/// when --gitdir is set. This is for security. From the tree itself one cannot
+	/// tell that the directory is managed from git and it's not know where the repo
+	/// lives.
+	//
+	#[ arg( long, verbatim_doc_comment ) ]
+	//
+	pub remove_dot_git: bool,
 
 
 	#[command(subcommand)]
@@ -175,14 +195,24 @@ impl CliArgs
 	}
 
 
-	pub fn validate( mut self ) -> Result<Self, &'static str>
+	/// This returns self so we can sanitize as well as validate.
+	//
+	pub fn validate( self ) -> anyhow::Result<Self>
 	{
-		// Don't leave empty strings around.
+		// All passed in paths must be absolute.
 		//
-		if let Some(s) = self.gitdir.take()
+		if !self.tree.is_absolute()
 		{
-			if !s.as_path().as_os_str().is_empty() { self.gitdir = Some(s); }
+			return Err( anyhow!( "--tree should be absolute, got {:?}", self.tree ) );
 		}
+
+		if let Some(g) = &self.gitdir {
+		if !g.is_absolute()
+		{
+			return Err( anyhow!( "--gitdir should be absolute, got {g:?}" ) );
+		}}
+
+		// TODO: gitdir should probably not be allowed to be inside tree.
 
 		Ok(self)
 	}

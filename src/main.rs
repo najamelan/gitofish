@@ -72,7 +72,7 @@ use
 
 
 
-fn main()
+fn main() -> Result<()>
 {
 	tracing_subscriber::fmt::Subscriber::builder()
 
@@ -98,20 +98,14 @@ fn main()
 	}
 
 
-	let args = match args.validate()
-	{
-		Ok(a) => a,
-		Err(e) =>
-		{
-			println!( "Got invalid input arguments: {e}" );
-			std::process::exit( 1 );
-		}
-	};
+	let args = match args.validate().context( "Got invalid input arguments" )?;
 
 
-	match args.command
-	{
-		Commands::PreGit{..} => task::pre_git( &args ),
-		Commands::PostReceive{..} => task::post_receive( &args ),
-	};
+	// match args.command
+	// {
+	// 	Commands::PreGit{..} => task::pre_git( &args ),
+	// 	Commands::PostReceive{..} => task::post_receive( &args ),
+	// };
+
+	Ok(())
 }
